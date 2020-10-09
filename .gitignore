@@ -122,3 +122,6 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Local files
+gcloud-ids.csv
