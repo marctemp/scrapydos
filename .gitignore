@@ -26,6 +26,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.vscode
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -121,7 +122,3 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
-
-# My stuff
-dosops.csv
-gcloud.csv
