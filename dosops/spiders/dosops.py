@@ -4,7 +4,8 @@ from tqdm import tqdm
 import scrapy
 
 
-class DosOpsSpider(scrapy.Spider):
+class DosOpsSpider(Utilities, scrapy.Spider):
+
     timestamp = dt.now().strftime('%Y-%m-%dT%H-%M-%S')
     name = 'dosops'
     base_url = 'https://www.digitalmarketplace.service.gov.uk/digital-outcomes-and-specialists/opportunities/'
@@ -32,15 +33,11 @@ class DosOpsSpider(scrapy.Spider):
                        'Nice-to-have skills and experience', 'How many suppliers to evaluate', 'Proposal criteria', 'Assessment methods',
                        'Evaluation weighting']
 
-    def load_ids(self, path='/Users/marcte/Documents/_Development/Procurement/data/DOS.csv'):
-        return list(read_csv(path)['ID'])
-
-    def xpath_stylisation(self, text):
-        return '\n        ' + text + '\n      '
+    path = '/Users/marcte/Documents/_Development/Procurement/data/DOS.csv'
 
     def start_requests(self, ids=None):
         if not ids:
-            ids = self.load_ids()
+            ids = Utilities.load_ids()
 
         for id in tqdm(ids):
             yield scrapy.Request(url=self.base_url + str(id), callback=self.parse)
