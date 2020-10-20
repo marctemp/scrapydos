@@ -4,7 +4,7 @@ from tqdm import tqdm
 import scrapy
 
 
-class DosOpsSpider(Utilities, scrapy.Spider):
+class DosOpsSpider(scrapy.Spider):
 
     timestamp = dt.now().strftime('%Y-%m-%dT%H-%M-%S')
     name = 'dosops'
@@ -37,8 +37,7 @@ class DosOpsSpider(Utilities, scrapy.Spider):
 
     def start_requests(self, ids=None):
         if not ids:
-            ids = Utilities.load_ids()
-
+            ids = load_ids()
         for id in tqdm(ids):
             yield scrapy.Request(url=self.base_url + str(id), callback=self.parse)
 

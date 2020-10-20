@@ -1,5 +1,6 @@
 import scrapy
 from json import dump
+#from Utilities import isValidXpath
 
 
 class GcloudSpider(scrapy.Spider):
@@ -8,10 +9,6 @@ class GcloudSpider(scrapy.Spider):
     def start_requests(self):
         baseurl = 'https://www.digitalmarketplace.service.gov.uk/g-cloud/services/624695628011497'
         yield scrapy.Request(url=baseurl, callback=self.parse)
-
-    def isValidXpath(self, xpathresult):
-        if xpathresult == []:
-            raise AttributeError
 
     def parse(self, response):
         self.logger.warning(response.url)
@@ -26,8 +23,8 @@ class GcloudSpider(scrapy.Spider):
             count_formatted = str(countSection).zfill(2)
             is_div = True
             try:
-                self.isValidXpath(response.xpath(
-                    f'//div[contains(@id,"{count_formatted}")]'))
+                # isValidXpath(response.xpath(
+                #  f'//div[contains(@id,"{count_formatted}")]'))
                 while is_div:
                     try:
                         fields = response.xpath(
