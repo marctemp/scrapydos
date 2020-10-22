@@ -1,12 +1,13 @@
-from datetime import datetime as dt
-from pandas import read_csv
-from tqdm import tqdm
 import scrapy
+from datetime import datetime as dt
+from tqdm import tqdm
+from dosops.spiders.utilities import load_ids, xpath_stylisation
 
 
 class DosOpsSpider(scrapy.Spider):
-    timestamp = dt.now().strftime('%Y-%m-%dT%H-%M-%S')
     name = 'dosops'
+
+    timestamp = dt.now().strftime('%Y-%m-%dT%H-%M-%S')
     base_url = 'https://www.digitalmarketplace.service.gov.uk/digital-outcomes-and-specialists/opportunities/'
 
     digOut_fields = ['Published', 'Deadline for asking questions', 'Closing date for applications', 'Summary of the work',
@@ -32,16 +33,9 @@ class DosOpsSpider(scrapy.Spider):
                        'Nice-to-have skills and experience', 'How many suppliers to evaluate', 'Proposal criteria', 'Assessment methods',
                        'Evaluation weighting']
 
-    def load_ids(self, path='/Users/marcte/Documents/_Development/Procurement/data/DOS.csv'):
-        return list(read_csv(path)['ID'])
-
-    def xpath_stylisation(self, text):
-        return '\n        ' + text + '\n      '
-
     def start_requests(self, ids=None):
         if not ids:
-            ids = self.load_ids()
-
+            ids = load_ids('')
         for id in tqdm(ids):
             yield scrapy.Request(url=self.base_url + str(id), callback=self.parse)
 
@@ -90,24 +84,24 @@ class DosOpsSpider(scrapy.Spider):
         entry = self.extract_xpath(response, entry,
                                    '//section[@class="dm-banner"]', '/*/text()')
 
-        digSpe_xpath = self.xpath_stylisation('Specialist role')
-        research_xpath = self.xpath_stylisation('Research plan')
+        digSpe_xpath = xpath_stylisation('Specialist role')
+        research_xpath = xpath_stylisation('Research plan')
 
         if self.check_page(response,
                            '//dt[text()="' + digSpe_xpath + '"]/../dd/text()'):
-            datapoints = list(map(self.xpath_stylisation, self.digSpe_fields))
+            datapoints = list(map(xpath_stylisation, self.digSpe_fields))
             filename = self.timestamp + 'digspe.tsv'
         elif self.check_page(response,
                              '//dt[text()="' + research_xpath + '"]/../dd/text()'):
             datapoints = list(
-                map(self.xpath_stylisation, self.research_fields))
+                map(xpath_stylisation, self.research_fields))
             filename = self.timestamp + 'res.tsv'
         else:
-            datapoints = list(map(self.xpath_stylisation, self.digOut_fields))
+            datapoints = list(map(xpath_stylisation, self.digOut_fields))
             filename = self.timestamp + 'dosops.tsv'
 
         for datapoint in tqdm(datapoints):
-            if self.xpath_stylisation('Evaluation weighting') == datapoint:
+            if xpath_stylisation('Evaluation weighting') == datapoint:
                 entry = self.extract_xpath(response,
                                            entry,
                                            '//dt[text()="' + datapoint, '"]/../dd/*/text()')

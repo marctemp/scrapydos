@@ -1,27 +1,55 @@
 import scrapy
+from json import dump
+from tqdm import tqdm
+from dosops.spiders.utilities import is_valid_xpath, load_ids
+
 
 class GcloudSpider(scrapy.Spider):
-    name = "gcloud"
+    name = 'gcloud'
 
-    def start_requests(self):
-        baseurl = 'https://www.digitalmarketplace.service.gov.uk/g-cloud/search?page='
-        for x in range(1,50):
-            yield scrapy.Request(url=baseurl + str(x) + '&q=data+analytics', callback=self.parse)
+    def start_requests(self, ids=None):
+        if not ids:
+            baseurl = 'https://www.digitalmarketplace.service.gov.uk/g-cloud/services/'
+            ids = load_ids('')
+        for id in tqdm(ids):
+            yield scrapy.Request(url=baseurl + str(id), callback=self.parse)
 
     def parse(self, response):
-        # page = response.url.split("/")[-1]
         self.logger.warning(response.url)
-        filename = 'gcloud.csv'
-        for section in response.selector.xpath('//div[@class="search-result"]'):
-            company = section.xpath('p[1]/text()').extract_first()
-            offering = section.xpath('h2/a/text()').extract_first()
-            link = 'https://www.digitalmarketplace.service.gov.uk' + section.xpath('h2/a/@href').extract_first()
-            description = section.xpath('p[2]/text()').extract_first()
-            category = section.xpath('ul/li[1]/text()').extract_first()
-            gcloud = section.xpath('ul/li[2]/text()').extract_first()
-            entry = company.strip().replace('\n', ' ').replace('\r', '') + '|' + offering.strip().replace('\n', ' ').replace('\r', '') + '|' + description.strip().replace(
-                '\n', ' ').replace('\r', '').replace('|', '') + '|' + category.strip().replace('\n', ' ').replace('\r', '') + '|' + gcloud.strip().replace('\n', ' ').replace('\r', '') + '|' + link.strip().replace('\n', ' ').replace('\r', '') + '\n'
-            self.logger.warning(entry)            
-            with open(filename, 'ab') as f:
-                f.write(entry.encode('utf-8'))
+
+        entry = {}
+        count_section = 1
+        count_div = 1
+        is_section = True
+
+        while is_section:
+            count_section_formatted = str(count_section).zfill(2)
+            is_div = True
+            try:
+                is_valid_xpath(response.xpath(
+                    f'//div[contains(@id,"{count_section_formatted}")]'))
+                while is_div:
+                    try:
+                        fields = response.xpath(
+                            f'//div[contains(@id,"{count_section_formatted}")]//div[{count_div}]//dt//text()')[0].root.strip()
+                        fields_text = response.xpath(
+                            f'//div[contains(@id,"{count_section_formatted}")]//div[{count_div}]//dd//text()')[0].root.strip()
+
+                        entry[fields] = fields_text
+                        self.logger.warning(
+                            f'{list(entry.keys())[-1]}: {list(entry.values())[-1]}')
+
+                        count_div += 1
+                    except:
+                        is_div = False
+                        print(f'No div numbered {count_div}')
+                count_section += 1
+                count_div = 1
+            except:
+                is_section = False
+                print(f'No Section numbered {count_section_formatted}')
+
+        filename = 'gcloud-services.json'
+        with open(filename, 'w') as f:
+            dump(entry, f)
         self.log('Saved file %s' % filename)
