@@ -1,14 +1,13 @@
-from datetime import datetime as dt
-from pandas import read_csv
-from tqdm import tqdm
 import scrapy
-from dosops.spiders.Utilities import load_ids, xpath_stylisation
+from datetime import datetime as dt
+from tqdm import tqdm
+from dosops.spiders.utilities import load_ids, xpath_stylisation
 
 
 class DosOpsSpider(scrapy.Spider):
+    name = 'dosops'
 
     timestamp = dt.now().strftime('%Y-%m-%dT%H-%M-%S')
-    name = 'dosops'
     base_url = 'https://www.digitalmarketplace.service.gov.uk/digital-outcomes-and-specialists/opportunities/'
 
     digOut_fields = ['Published', 'Deadline for asking questions', 'Closing date for applications', 'Summary of the work',
@@ -36,8 +35,7 @@ class DosOpsSpider(scrapy.Spider):
 
     def start_requests(self, ids=None):
         if not ids:
-            ids = load_ids(
-                '/Users/marcte/Documents/_Development/Procurement/data/DOS.csv')
+            ids = load_ids('')
         for id in tqdm(ids):
             yield scrapy.Request(url=self.base_url + str(id), callback=self.parse)
 
