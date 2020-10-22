@@ -18,11 +18,10 @@ class GcloudSpider(scrapy.Spider):
         self.logger.warning(response.url)
 
         entry = {}
-        filename = 'gcloud-services.json'
-
         count_section = 1
         count_div = 1
         is_section = True
+
         while is_section:
             count_section_formatted = str(count_section).zfill(2)
             is_div = True
@@ -50,6 +49,7 @@ class GcloudSpider(scrapy.Spider):
                 is_section = False
                 print(f'No Section numbered {count_section_formatted}')
 
+        filename = 'gcloud-services.json'
         with open(filename, 'w') as f:
             dump(entry, f)
         self.log('Saved file %s' % filename)
